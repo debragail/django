@@ -3,6 +3,7 @@ import argparse
 import os
 import subprocess
 import sys
+from security import safe_command
 
 try:
     import closure
@@ -54,7 +55,7 @@ Compiler library and Java version 6 or later."""
             cmd = "java -jar %s --js %s --js_output_file %s" % (compiler, to_compress, to_compress_min)
             if options.verbose:
                 sys.stdout.write("Running: %s\n" % cmd)
-            subprocess.call(cmd.split())
+            safe_command.run(subprocess.call, cmd.split())
         else:
             sys.stdout.write("File %s not found. Sure it exists?\n" % to_compress)
 
