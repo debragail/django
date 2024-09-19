@@ -8,6 +8,7 @@ import time
 
 from django.conf import settings
 from django.utils.encoding import force_bytes
+import secrets
 
 # Use the system PRNG if possible
 try:
@@ -61,14 +62,13 @@ def get_random_string(length=12,
         # time a random string is required. This may change the
         # properties of the chosen random sequence slightly, but this
         # is better than absolute predictability.
-        random.seed(
-            hashlib.sha256(
+        secrets.SystemRandom().seed(hashlib.sha256(
                 ("%s%s%s" % (
-                    random.getstate(),
+                    secrets.SystemRandom().getstate(),
                     time.time(),
                     settings.SECRET_KEY)).encode('utf-8')
             ).digest())
-    return ''.join(random.choice(allowed_chars) for i in range(length))
+    return ''.join(secrets.choice(allowed_chars) for i in range(length))
 
 
 def constant_time_compare(val1, val2):
