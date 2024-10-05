@@ -25,6 +25,7 @@ from subprocess import PIPE, Popen, call
 import django
 from django.conf import settings
 from django.core.management import call_command
+from security import safe_command
 
 HAVE_JS = ['admin']
 
@@ -73,7 +74,7 @@ def _check_diff(cat_name, base_path):
     """
     po_path = '%(path)s/en/LC_MESSAGES/django%(ext)s.po' % {
         'path': base_path, 'ext': 'js' if cat_name.endswith('-js') else ''}
-    p = Popen("git diff -U0 %s | egrep '^[-+]msgid' | wc -l" % po_path,
+    p = safe_command.run(Popen, "git diff -U0 %s | egrep '^[-+]msgid' | wc -l" % po_path,
               stdout=PIPE, stderr=PIPE, shell=True)
     output, errors = p.communicate()
     num_changes = int(output.strip())
@@ -119,7 +120,7 @@ def lang_stats(resources=None, languages=None):
             if languages and lang not in languages:
                 continue
             # TODO: merge first with the latest en catalog
-            p = Popen("msgfmt -vc -o /dev/null %(path)s/%(lang)s/LC_MESSAGES/django%(ext)s.po" % {
+            p = safe_command.run(Popen, "msgfmt -vc -o /dev/null %(path)s/%(lang)s/LC_MESSAGES/django%(ext)s.po" % {
                 'path': dir_, 'lang': lang, 'ext': 'js' if name.endswith('-js') else ''},
                 stdout=PIPE, stderr=PIPE, shell=True)
             output, errors = p.communicate()
@@ -141,11 +142,11 @@ def fetch(resources=None, languages=None):
     for name, dir_ in locale_dirs:
         # Transifex pull
         if languages is None:
-            call('tx pull -r %(res)s -a -f  --minimum-perc=5' % {'res': _tx_resource_for_name(name)}, shell=True)
+            safe_command.run(call, 'tx pull -r %(res)s -a -f  --minimum-perc=5' % {'res': _tx_resource_for_name(name)}, shell=True)
             target_langs = sorted([d for d in os.listdir(dir_) if not d.startswith('_') and d != 'en'])
         else:
             for lang in languages:
-                call('tx pull -r %(res)s -f -l %(lang)s' % {
+                safe_command.run(call, 'tx pull -r %(res)s -f -l %(lang)s' % {
                     'res': _tx_resource_for_name(name), 'lang': lang}, shell=True)
             target_langs = languages
 
@@ -157,8 +158,8 @@ def fetch(resources=None, languages=None):
                 print("No %(lang)s translation for resource %(name)s" % {
                     'lang': lang, 'name': name})
                 continue
-            call('msgcat --no-location -o %s %s' % (po_path, po_path), shell=True)
-            res = call('msgfmt -c -o %s.mo %s' % (po_path[:-3], po_path), shell=True)
+            safe_command.run(call, 'msgcat --no-location -o %s %s' % (po_path, po_path), shell=True)
+            res = safe_command.run(call, 'msgfmt -c -o %s.mo %s' % (po_path[:-3], po_path), shell=True)
             if res != 0:
                 errors.append((name, lang))
     if errors:
