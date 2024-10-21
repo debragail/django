@@ -202,7 +202,7 @@ def render_javascript_catalog(catalog=None, plural=None):
         'plural': plural,
     })
 
-    return http.HttpResponse(template.render(context), 'text/javascript')
+    return http.HttpResponse(template.render(context), 'text/javascript', content_type="application/json")
 
 
 def null_javascript_catalog(request, domain=None, packages=None):
@@ -298,7 +298,7 @@ class JavaScriptCatalog(View):
         ) if context['catalog'] else None
         context['formats_str'] = indent(json.dumps(context['formats'], sort_keys=True, indent=2))
 
-        return http.HttpResponse(template.render(Context(context)), 'text/javascript')
+        return http.HttpResponse(template.render(Context(context)), 'text/javascript', content_type="application/json")
 
 
 class JSONCatalog(JavaScriptCatalog):
