@@ -1,5 +1,4 @@
 """Default variable filters."""
-import random as random_module
 import re
 from decimal import ROUND_HALF_UP, Context, Decimal, InvalidOperation
 from functools import wraps
@@ -23,6 +22,7 @@ from django.utils.translation import ugettext, ungettext
 
 from .base import Variable, VariableDoesNotExist
 from .library import Library
+import secrets
 
 register = Library()
 
@@ -591,7 +591,7 @@ def length_is(value, arg):
 @register.filter(is_safe=True)
 def random(value):
     """Returns a random item from the list."""
-    return random_module.choice(value)
+    return secrets.choice(value)
 
 
 @register.filter("slice", is_safe=True)
